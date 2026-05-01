@@ -1,0 +1,1545 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>Visibilia — Dashboard</title>
+<link rel="icon" type="image/png" href="logo.png">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,400&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#0A0A0A;--bg2:#111;--bg3:#1A1A1A;--bg4:#222;
+  --border:rgba(255,255,255,0.07);--border2:rgba(255,255,255,0.12);
+  --text:#F0EFE8;--text2:#888;--text3:#555;
+  --yellow:#F5C518;--yellow2:rgba(245,197,24,0.12);--yellow3:rgba(245,197,24,0.25);
+  --green:#22C55E;--green2:rgba(34,197,94,0.12);
+  --blue:#3B82F6;--blue2:rgba(59,130,246,0.12);
+  --orange:#F97316;--orange2:rgba(249,115,22,0.12);
+  --red:#EF4444;--red2:rgba(239,68,68,0.12);
+  --purple:#A855F7;--purple2:rgba(168,85,247,0.12);
+  --radius:10px;--radius2:14px;
+}
+html{scroll-behavior:smooth}
+body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;overflow-x:hidden}
+
+/* NAV */
+.nav{position:sticky;top:0;z-index:100;background:rgba(10,10,10,0.92);backdrop-filter:blur(12px);border-bottom:1px solid var(--border);padding:0 16px;display:flex;align-items:center;justify-content:space-between;height:52px}
+.nav-logo{font-family:'Bebas Neue',sans-serif;font-size:22px;color:var(--yellow);letter-spacing:1px}
+.nav-tabs{display:flex;gap:2px}
+.nav-tab{background:none;border:none;color:var(--text2);font-family:'DM Sans',sans-serif;font-size:12px;font-weight:500;padding:6px 12px;border-radius:6px;cursor:pointer;transition:all .15s;white-space:nowrap}
+.nav-tab.active{background:var(--yellow2);color:var(--yellow)}
+.nav-tab:hover:not(.active){background:var(--bg3);color:var(--text)}
+
+/* PANELS */
+.panel{display:none;padding:16px;max-width:800px;margin:0 auto;padding-bottom:80px}
+.panel.active{display:block}
+
+/* CARDS */
+.card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius2);padding:16px;margin-bottom:12px}
+.card-title{font-size:11px;font-weight:500;letter-spacing:1.5px;text-transform:uppercase;color:var(--text2);margin-bottom:14px}
+
+/* STAT GRID */
+.stat-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-bottom:14px}
+.stat-card{background:var(--bg3);border-radius:var(--radius);padding:14px;text-align:center}
+.stat-num{font-family:'Bebas Neue',sans-serif;font-size:36px;line-height:1;color:var(--yellow)}
+.stat-lbl{font-size:11px;color:var(--text2);margin-top:2px}
+
+/* BADGES */
+.badge{display:inline-flex;align-items:center;gap:4px;font-size:11px;font-weight:500;padding:3px 8px;border-radius:20px;white-space:nowrap}
+.badge-new{background:var(--blue2);color:var(--blue)}
+.badge-todo{background:var(--yellow2);color:var(--yellow)}
+.badge-sent{background:var(--orange2);color:var(--orange)}
+.badge-interested{background:var(--purple2);color:var(--purple)}
+.badge-closed{background:var(--green2);color:var(--green)}
+.badge-lost{background:var(--red2);color:var(--red)}
+
+/* BUTTONS */
+.btn{display:inline-flex;align-items:center;gap:6px;font-family:'DM Sans',sans-serif;font-size:13px;font-weight:500;padding:8px 14px;border-radius:8px;border:none;cursor:pointer;transition:all .15s}
+.btn-primary{background:var(--yellow);color:#000}
+.btn-primary:hover{background:#e6b800}
+.btn-ghost{background:transparent;color:var(--text2);border:1px solid var(--border)}
+.btn-ghost:hover{background:var(--bg3);color:var(--text)}
+.btn-sm{padding:5px 10px;font-size:11px}
+.btn-danger{background:var(--red2);color:var(--red);border:1px solid transparent}
+.btn-danger:hover{background:var(--red);color:#fff}
+
+/* INPUTS */
+input,select,textarea{font-family:'DM Sans',sans-serif;font-size:13px;background:var(--bg3);border:1px solid var(--border);border-radius:8px;color:var(--text);padding:8px 12px;width:100%;outline:none;transition:border .15s}
+input:focus,select:focus,textarea:focus{border-color:var(--yellow)}
+textarea{resize:vertical;min-height:70px}
+select option{background:var(--bg3)}
+label{font-size:12px;color:var(--text2);display:block;margin-bottom:4px}
+.form-row{margin-bottom:12px}
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+
+/* LEAD CARD */
+.lead-card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);padding:12px 14px;margin-bottom:8px;transition:border .15s}
+.lead-card:hover{border-color:var(--border2)}
+.lead-header{display:flex;align-items:flex-start;justify-content:space-between;gap:8px;margin-bottom:8px}
+.lead-name{font-size:14px;font-weight:500;line-height:1.3}
+.lead-meta{font-size:11px;color:var(--text2);margin-top:3px}
+.lead-actions{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px}
+
+/* TODO */
+.todo-item{display:flex;align-items:flex-start;gap:10px;padding:10px 0;border-bottom:1px solid var(--border)}
+.todo-item:last-child{border-bottom:none}
+.todo-check{width:18px;height:18px;border-radius:4px;border:1.5px solid var(--border2);background:none;cursor:pointer;flex-shrink:0;margin-top:1px;display:flex;align-items:center;justify-content:center;transition:all .15s}
+.todo-check.done{background:var(--green);border-color:var(--green)}
+.todo-check.done::after{content:'✓';font-size:11px;color:#000;font-weight:700}
+.todo-text{flex:1;font-size:13px;line-height:1.4}
+.todo-text.done{color:var(--text3);text-decoration:line-through}
+.todo-due{font-size:10px;color:var(--text2);margin-top:2px}
+.todo-due.overdue{color:var(--red)}
+.todo-tag{font-size:10px;background:var(--bg3);color:var(--text2);padding:2px 7px;border-radius:10px;white-space:nowrap}
+.todo-recurring{font-size:10px;color:var(--purple);background:var(--purple2);padding:2px 7px;border-radius:10px}
+
+/* RICEVUTA */
+.receipt-preview{background:#fff;color:#111;border-radius:var(--radius);padding:28px;font-family:'DM Sans',sans-serif;font-size:13px;line-height:1.6}
+.receipt-preview h2{font-size:18px;font-weight:600;margin-bottom:4px}
+.receipt-preview .sub{color:#666;font-size:12px;margin-bottom:20px}
+.receipt-row{display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px solid #f0f0f0}
+.receipt-row:last-child{border-bottom:none}
+.receipt-total{font-weight:600;font-size:15px;margin-top:8px;padding-top:8px;border-top:2px solid #111;display:flex;justify-content:space-between}
+.receipt-footer{margin-top:20px;padding-top:12px;border-top:1px solid #e0e0e0;font-size:11px;color:#888}
+
+/* PIPELINE */
+.pipeline{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:16px}
+.pipe-col{background:var(--bg3);border-radius:var(--radius);padding:10px}
+.pipe-col-title{font-size:10px;font-weight:500;letter-spacing:1.2px;text-transform:uppercase;color:var(--text2);margin-bottom:8px;display:flex;align-items:center;justify-content:space-between}
+.pipe-count{background:var(--bg4);color:var(--text2);font-size:10px;padding:2px 6px;border-radius:10px}
+.pipe-item{background:var(--bg2);border:1px solid var(--border);border-radius:7px;padding:8px 10px;margin-bottom:6px;font-size:12px;cursor:pointer;transition:border .15s}
+.pipe-item:hover{border-color:var(--border2)}
+.pipe-item-name{font-weight:500;line-height:1.3;margin-bottom:3px}
+.pipe-item-meta{font-size:10px;color:var(--text2)}
+
+/* RICAVO */
+.revenue-bar{height:6px;background:var(--bg4);border-radius:3px;margin-top:6px;overflow:hidden}
+.revenue-fill{height:100%;background:var(--yellow);border-radius:3px;transition:width .4s ease}
+
+/* EMPTY */
+.empty{text-align:center;padding:40px 20px;color:var(--text2)}
+.empty-icon{font-size:32px;margin-bottom:8px}
+.empty-text{font-size:13px}
+
+/* MODAL */
+.modal-bg{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.7);z-index:200;align-items:flex-end;justify-content:center}
+.modal-bg.open{display:flex}
+.modal{background:var(--bg2);border-radius:var(--radius2) var(--radius2) 0 0;padding:20px;width:100%;max-width:500px;max-height:90vh;overflow-y:auto;border-top:1px solid var(--border2)}
+.modal-title{font-size:15px;font-weight:500;margin-bottom:16px;display:flex;justify-content:space-between;align-items:center}
+.modal-close{background:none;border:none;color:var(--text2);font-size:20px;cursor:pointer;padding:0;line-height:1}
+
+/* TABS SECONDARY */
+.tabs2{display:flex;gap:4px;margin-bottom:14px;background:var(--bg3);border-radius:8px;padding:3px}
+.tab2{flex:1;background:none;border:none;color:var(--text2);font-family:'DM Sans',sans-serif;font-size:12px;font-weight:500;padding:6px 8px;border-radius:6px;cursor:pointer;transition:all .15s;text-align:center}
+.tab2.active{background:var(--bg2);color:var(--text)}
+
+/* UPLOAD AREA */
+.upload-area{border:1.5px dashed var(--border2);border-radius:var(--radius);padding:24px;text-align:center;cursor:pointer;transition:border .15s;margin-bottom:14px}
+.upload-area:hover{border-color:var(--yellow)}
+.upload-area p{font-size:13px;color:var(--text2);margin-top:8px}
+
+/* MISC */
+.sep{height:1px;background:var(--border);margin:14px 0}
+.flex-between{display:flex;align-items:center;justify-content:space-between}
+.flex-gap{display:flex;align-items:center;gap:8px}
+.text-yellow{color:var(--yellow)}
+.text-green{color:var(--green)}
+.text-red{color:var(--red)}
+.text-sm{font-size:12px;color:var(--text2)}
+.mt8{margin-top:8px}
+.mb8{margin-bottom:8px}
+.section-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}
+.section-header h2{font-family:'Bebas Neue',sans-serif;font-size:28px;line-height:1}
+
+@media(min-width:600px){
+  .stat-grid{grid-template-columns:repeat(4,1fr)}
+  .form-grid{grid-template-columns:1fr 1fr 1fr}
+  .pipeline{grid-template-columns:repeat(3,1fr)}
+}
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav class="nav">
+  <a href="/" style="display:flex;align-items:center;text-decoration:none">
+    <img src="logo.png" alt="Visibilia" style="height:28px;width:auto">
+  </a>
+  <div class="nav-tabs">
+    <button class="nav-tab active" onclick="showPanel('dashboard')">Home</button>
+    <button class="nav-tab" onclick="showPanel('leads')">Lead</button>
+    <button class="nav-tab" onclick="showPanel('todo')">Todo</button>
+    <button class="nav-tab" onclick="showPanel('ricevute')">Ricevute</button>
+    <button class="nav-tab" onclick="showPanel('preventivi')">Preventivi</button>
+    <button class="nav-tab" onclick="showPanel('impostazioni')">⚙️</button>
+  </div>
+</nav>
+
+<!-- DASHBOARD -->
+<div id="panel-dashboard" class="panel active">
+  <div style="padding:12px 0 16px">
+    <div style="font-size:11px;color:var(--text2);margin-bottom:2px" id="dash-date"></div>
+    <div style="font-family:'Bebas Neue',sans-serif;font-size:32px;line-height:1">Buongiorno, <span class="text-yellow">Fabrizio</span></div>
+  </div>
+
+  <div class="stat-grid" id="dash-stats"></div>
+
+  <div class="card">
+    <div class="card-title">Pipeline trattative</div>
+    <div class="pipeline" id="dash-pipeline"></div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">Todo di oggi</div>
+    <div id="dash-today-todo"></div>
+    <button class="btn btn-ghost btn-sm mt8" onclick="showPanel('todo')">Vedi tutti →</button>
+  </div>
+
+  <div class="card">
+    <div class="card-title">Ricavo mensile stimato</div>
+    <div id="dash-revenue"></div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">Listino prezzi & Payment Link</div>
+    <div style="display:flex;flex-direction:column;gap:8px">
+
+      <div style="background:var(--bg3);border-radius:10px;padding:12px 14px">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">
+          <span style="font-size:13px;font-weight:500">Starter</span>
+          <span style="font-size:14px;font-weight:500;color:var(--yellow)">150€ + 19€/mese</span>
+        </div>
+        <div style="font-size:11px;color:var(--text2);margin-bottom:8px">Sito 1 pagina · WhatsApp · Maps · Form contatto</div>
+        <div style="display:flex;gap:6px;flex-wrap:wrap">
+          <a href="https://buy.stripe.com/3cI8wO5iq3qv8qHdV22wU03" target="_blank" class="btn btn-ghost btn-sm" style="font-size:10px">💳 Setup 150€</a>
+          <a href="https://buy.stripe.com/fZudR8dOWf9dbCT9EM2wU06" target="_blank" class="btn btn-ghost btn-sm" style="font-size:10px">🔄 Canone 19€/m</a>
+          <button onclick="copyLink('https://buy.stripe.com/3cI8wO5iq3qv8qHdV22wU03')" class="btn btn-ghost btn-sm" style="font-size:10px">📋 Copia setup</button>
+          <button onclick="copyLink('https://buy.stripe.com/fZudR8dOWf9dbCT9EM2wU06')" class="btn btn-ghost btn-sm" style="font-size:10px">📋 Copia canone</button>
+        </div>
+      </div>
+
+      <div style="background:var(--bg3);border:1px solid var(--yellow3);border-radius:10px;padding:12px 14px">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">
+          <div style="display:flex;align-items:center;gap:6px">
+            <span style="font-size:13px;font-weight:500">Professional</span>
+            <span style="background:var(--yellow2);color:var(--yellow);font-size:10px;font-weight:500;padding:2px 7px;border-radius:10px">Più scelto</span>
+          </div>
+          <span style="font-size:14px;font-weight:500;color:var(--yellow)">250€ + 29€/mese</span>
+        </div>
+        <div style="font-size:11px;color:var(--text2);margin-bottom:8px">Tutto Starter + Recensioni · SEO base · 1 aggiornamento/mese</div>
+        <div style="display:flex;gap:6px;flex-wrap:wrap">
+          <a href="https://buy.stripe.com/bJeaEW4emd15dL18AI2wU04" target="_blank" class="btn btn-primary btn-sm" style="font-size:10px">💳 Setup 250€</a>
+          <a href="https://buy.stripe.com/6oU14m6mu6CH5ev8AI2wU07" target="_blank" class="btn btn-primary btn-sm" style="font-size:10px">🔄 Canone 29€/m</a>
+          <button onclick="copyLink('https://buy.stripe.com/bJeaEW4emd15dL18AI2wU04')" class="btn btn-ghost btn-sm" style="font-size:10px">📋 Copia setup</button>
+          <button onclick="copyLink('https://buy.stripe.com/6oU14m6mu6CH5ev8AI2wU07')" class="btn btn-ghost btn-sm" style="font-size:10px">📋 Copia canone</button>
+        </div>
+      </div>
+
+      <div style="background:var(--bg3);border-radius:10px;padding:12px 14px">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">
+          <span style="font-size:13px;font-weight:500">Premium</span>
+          <span style="font-size:14px;font-weight:500;color:var(--yellow)">400€ + 49€/mese</span>
+        </div>
+        <div style="font-size:11px;color:var(--text2);margin-bottom:8px">Tutto Prof. + Foto lavori · Google Business · Chatbot AI</div>
+        <div style="display:flex;gap:6px;flex-wrap:wrap">
+          <a href="https://buy.stripe.com/5kQbJ08uCbX136ncQY2wU05" target="_blank" class="btn btn-ghost btn-sm" style="font-size:10px">💳 Setup 400€</a>
+          <a href="https://buy.stripe.com/6oU6oG8uC0ej8qHdV22wU08" target="_blank" class="btn btn-ghost btn-sm" style="font-size:10px">🔄 Canone 49€/m</a>
+          <button onclick="copyLink('https://buy.stripe.com/5kQbJ08uCbX136ncQY2wU05')" class="btn btn-ghost btn-sm" style="font-size:10px">📋 Copia setup</button>
+          <button onclick="copyLink('https://buy.stripe.com/6oU6oG8uC0ej8qHdV22wU08')" class="btn btn-ghost btn-sm" style="font-size:10px">📋 Copia canone</button>
+        </div>
+      </div>
+
+      <div style="background:var(--bg3);border-radius:10px;padding:10px 14px">
+        <div style="font-size:11px;font-weight:500;color:var(--text2);margin-bottom:6px">Upgrade à la carte</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:4px">
+          <div style="display:flex;justify-content:space-between;font-size:11px;padding:3px 0;border-bottom:1px solid var(--border)"><span style="color:var(--text2)">Google Business</span><span style="color:var(--text);font-weight:500">60€</span></div>
+          <div style="display:flex;justify-content:space-between;font-size:11px;padding:3px 0;border-bottom:1px solid var(--border)"><span style="color:var(--text2)">Galleria foto</span><span style="color:var(--text);font-weight:500">80€</span></div>
+          <div style="display:flex;justify-content:space-between;font-size:11px;padding:3px 0;border-bottom:1px solid var(--border)"><span style="color:var(--text2)">Form preventivo</span><span style="color:var(--text);font-weight:500">70€</span></div>
+          <div style="display:flex;justify-content:space-between;font-size:11px;padding:3px 0;border-bottom:1px solid var(--border)"><span style="color:var(--text2)">Prenotazioni online</span><span style="color:var(--text);font-weight:500">80€</span></div>
+          <div style="display:flex;justify-content:space-between;font-size:11px;padding:3px 0;border-bottom:1px solid var(--border)"><span style="color:var(--text2)">Chatbot WhatsApp AI</span><span style="color:var(--text);font-weight:500">150€+20€/m</span></div>
+          <div style="display:flex;justify-content:space-between;font-size:11px;padding:3px 0;border-bottom:1px solid var(--border)"><span style="color:var(--text2)">QR code furgone</span><span style="color:var(--text);font-weight:500">20€</span></div>
+        </div>
+      </div>
+
+    </div>
+    <div style="margin-top:10px;background:var(--yellow2);border-radius:8px;padding:10px 12px;font-size:11px;color:var(--yellow)">
+      💡 Marca da bollo €2,00 obbligatoria su ricevute &gt; €77,47
+    </div>
+  </div>
+</div>
+
+<!-- LEADS -->
+<div id="panel-leads" class="panel">
+  <div class="section-header">
+    <h2>Lead</h2>
+    <div class="flex-gap">
+      <button class="btn btn-ghost btn-sm" onclick="openImportModal()">↑ Importa XLSX</button>
+      <button class="btn btn-primary btn-sm" onclick="openLeadModal()">+ Aggiungi</button>
+    </div>
+  </div>
+
+  <!-- SEARCH + FILTRI -->
+  <div style="display:flex;gap:8px;margin-bottom:10px;flex-wrap:wrap">
+    <input id="lead-search" type="text" placeholder="🔍 Cerca nome..." 
+      oninput="renderLeads()"
+      style="flex:1;min-width:140px;background:var(--bg3);border:1px solid var(--border2);border-radius:8px;padding:8px 12px;color:var(--text);font-family:'DM Sans',sans-serif;font-size:13px;outline:none">
+    <select id="lead-cat-filter" onchange="renderLeads()"
+      style="background:var(--bg3);border:1px solid var(--border2);border-radius:8px;padding:8px 12px;color:var(--text);font-family:'DM Sans',sans-serif;font-size:13px;outline:none">
+      <option value="">Tutte le categorie</option>
+      <option value="idraulico">🔧 Idraulici</option>
+      <option value="elettricista">⚡ Elettricisti</option>
+      <option value="giardiniere">🌿 Giardinieri</option>
+      <option value="imbianchino">🎨 Imbianchini</option>
+      <option value="autofficina">🚗 Autofficine</option>
+      <option value="geometra">📐 Geometri</option>
+      <option value="parrucchiere">✂️ Parrucchieri</option>
+      <option value="estetista">💅 Estetiste</option>
+      <option value="potatura alberi">🌳 Potatura</option>
+    </select>
+    <select id="lead-city-filter" onchange="renderLeads()"
+      style="background:var(--bg3);border:1px solid var(--border2);border-radius:8px;padding:8px 12px;color:var(--text);font-family:'DM Sans',sans-serif;font-size:13px;outline:none">
+      <option value="">Tutte le città</option>
+    </select>
+  </div>
+
+  <div class="tabs2">
+    <button class="tab2 active" onclick="filterLeads('tutti')">Tutti</button>
+    <button class="tab2" onclick="filterLeads('Da contattare')">Da contattare</button>
+    <button class="tab2" onclick="filterLeads('Contattato')">Contattati</button>
+    <button class="tab2" onclick="filterLeads('Interessato')">Interessati</button>
+    <button class="tab2" onclick="filterLeads('Chiuso')">Chiusi</button>
+  </div>
+
+  <div id="leads-list"></div>
+</div>
+
+<!-- TODO -->
+<div id="panel-todo" class="panel">
+  <div class="section-header">
+    <h2>Todo</h2>
+    <button class="btn btn-primary btn-sm" onclick="openTodoModal()">+ Aggiungi</button>
+  </div>
+
+  <div class="tabs2">
+    <button class="tab2 active" onclick="filterTodos('oggi')">Oggi</button>
+    <button class="tab2" onclick="filterTodos('settimana')">Settimana</button>
+    <button class="tab2" onclick="filterTodos('ricorrenti')">Ricorrenti</button>
+    <button class="tab2" onclick="filterTodos('tutti')">Tutti</button>
+  </div>
+
+  <div id="todo-list"></div>
+</div>
+
+<!-- RICEVUTE -->
+<div id="panel-ricevute" class="panel">
+  <div class="section-header">
+    <h2>Ricevute</h2>
+    <button class="btn btn-primary btn-sm" onclick="openReceiptModal()">+ Nuova</button>
+  </div>
+
+  <div class="card" style="margin-bottom:14px">
+    <div class="card-title">Riepilogo anno</div>
+    <div id="receipt-summary"></div>
+  </div>
+
+  <div id="receipts-list"></div>
+</div>
+
+<!-- IMPOSTAZIONI -->
+<div id="panel-impostazioni" class="panel">
+  <div class="section-header">
+    <h2>Impostazioni</h2>
+  </div>
+
+  <div class="card">
+    <div class="card-title">Backup dati</div>
+    <p class="text-sm" style="margin-bottom:14px;line-height:1.6">I dati sono salvati nel localStorage del browser. Esegui un backup regolare su Google Drive per non perdere nulla. <span style="color:var(--yellow)">Con Brave configurato per pulire alla chiusura, il backup è obbligatorio.</span></p>
+    <div style="display:flex;flex-direction:column;gap:10px">
+      <button class="btn btn-primary" onclick="exportBackup()">
+        ⬇️ Esporta backup JSON
+      </button>
+      <div style="background:var(--bg3);border-radius:8px;padding:12px">
+        <div class="text-sm" style="margin-bottom:8px">Ripristina da backup</div>
+        <input type="file" id="backup-input" accept=".json" style="display:none" onchange="importBackup(this)">
+        <button class="btn btn-ghost" style="width:100%" onclick="document.getElementById('backup-input').click()">
+          ⬆️ Importa backup JSON
+        </button>
+      </div>
+    </div>
+    <div id="backup-status" style="margin-top:10px"></div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">Ultimo backup</div>
+    <div id="last-backup-info" style="font-size:13px;color:var(--text2)">Nessun backup ancora eseguito.</div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">Istruzioni Google Drive</div>
+    <ol style="font-size:13px;color:var(--text2);line-height:2;padding-left:18px">
+      <li>Clicca <strong style="color:var(--text)">Esporta backup JSON</strong> — si scarica un file</li>
+      <li>Apri <strong style="color:var(--text)">Google Drive</strong> sul tuo browser</li>
+      <li>Carica il file in una cartella <strong style="color:var(--text)">Visibilia/Backup</strong></li>
+      <li>Ripeti ogni settimana (domenica sera)</li>
+    </ol>
+    <div style="margin-top:12px;background:var(--yellow2);border:1px solid var(--yellow3);border-radius:8px;padding:12px;font-size:12px;color:var(--yellow)">
+      💡 Consiglio: imposta un todo ricorrente settimanale "Esegui backup Visibilia" nella sezione Todo.
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">Brave — escludi dalla pulizia</div>
+    <ol style="font-size:13px;color:var(--text2);line-height:2;padding-left:18px">
+      <li>Apri Brave → <strong style="color:var(--text)">Impostazioni</strong></li>
+      <li>Vai su <strong style="color:var(--text)">Privacy e sicurezza</strong></li>
+      <li>Clicca <strong style="color:var(--text)">Cancella dati alla chiusura</strong></li>
+      <li>Cerca l'opzione <strong style="color:var(--text)">Eccezioni siti</strong> o <strong style="color:var(--text)">Siti che possono sempre...</strong></li>
+      <li>Aggiungi il tuo dominio Netlify della dashboard</li>
+    </ol>
+    <div style="margin-top:12px;background:var(--green2);border-radius:8px;padding:12px;font-size:12px;color:var(--green)">
+      ✓ Così localStorage non verrà mai cancellato per la tua dashboard.
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">Riepilogo dati salvati</div>
+    <div id="data-summary"></div>
+  </div>
+
+  <div class="card" style="border-color:var(--red2)">
+    <div class="card-title" style="color:var(--red)">Zona pericolosa</div>
+    <p class="text-sm" style="margin-bottom:12px">Cancella tutti i dati della dashboard. Operazione irreversibile.</p>
+    <button class="btn btn-danger" onclick="resetAll()">🗑 Cancella tutti i dati</button>
+  </div>
+</div>
+
+<!-- PREVENTIVI -->
+<div id="panel-preventivi" class="panel">
+  <div class="section-header">
+    <h2>Preventivi</h2>
+    <button class="btn btn-primary btn-sm" onclick="openQuoteModal()">+ Nuovo</button>
+  </div>
+  <div id="quotes-list"></div>
+</div>
+
+<!-- MODAL LEAD -->
+<div class="modal-bg" id="modal-lead">
+  <div class="modal">
+    <div class="modal-title">
+      <span id="modal-lead-title">Nuovo lead</span>
+      <button class="modal-close" onclick="closeModal('modal-lead')">×</button>
+    </div>
+    <input type="hidden" id="lead-edit-id">
+    <div class="form-row"><label>Nome attività *</label><input id="l-nome" placeholder="es. D.C. Elettrica"></div>
+    <div class="form-grid">
+      <div class="form-row"><label>Categoria</label><input id="l-cat" placeholder="es. elettricista"></div>
+      <div class="form-row"><label>Città</label><input id="l-citta" placeholder="es. Milano"></div>
+    </div>
+    <div class="form-row"><label>Telefono</label><input id="l-tel" placeholder="375 747 1012" type="tel"></div>
+    <div class="form-row"><label>Email</label><input id="l-email" placeholder="info@esempio.it" type="email"></div>
+    <div class="form-row"><label>Indirizzo</label><input id="l-ind" placeholder="Via..."></div>
+    <div class="form-grid">
+      <div class="form-row"><label>Rating ⭐</label><input id="l-rating" type="number" min="0" max="5" step="0.1" placeholder="4.9"></div>
+      <div class="form-row"><label>Recensioni</label><input id="l-rec" type="number" placeholder="213"></div>
+    </div>
+    <div class="form-row">
+      <label>Stato</label>
+      <select id="l-stato">
+        <option>Da contattare</option>
+        <option>Contattato</option>
+        <option>Demo inviata</option>
+        <option>Interessato</option>
+        <option>Trattativa</option>
+        <option>Chiuso</option>
+        <option>Non interessato</option>
+      </select>
+    </div>
+    <div class="form-row"><label>Note</label><textarea id="l-note" placeholder="Appunti sulla trattativa..."></textarea></div>
+    <button class="btn btn-primary" style="width:100%" onclick="saveLead()">Salva lead</button>
+  </div>
+</div>
+
+<!-- MODAL IMPORT -->
+<div class="modal-bg" id="modal-import">
+  <div class="modal">
+    <div class="modal-title">
+      Importa da XLSX
+      <button class="modal-close" onclick="closeModal('modal-import')">×</button>
+    </div>
+    <div class="upload-area" onclick="document.getElementById('xlsx-input').click()">
+      <div style="font-size:28px">📂</div>
+      <p>Clicca per selezionare il file<br><span style="font-size:11px">Supporta XLSX e CSV — generato dallo scraper Visibilia</span></p>
+      <input type="file" id="xlsx-input" accept=".xlsx,.xls,.csv" style="display:none" onchange="importXLSX(this)">
+    </div>
+    <div class="text-sm">Accetta sia file <strong>.xlsx</strong> che <strong>.csv</strong> — nessuna conversione necessaria.</div>
+    <div id="import-preview" style="margin-top:12px"></div>
+  </div>
+</div>
+
+<!-- MODAL TODO -->
+<div class="modal-bg" id="modal-todo">
+  <div class="modal">
+    <div class="modal-title">
+      <span>Nuovo todo</span>
+      <button class="modal-close" onclick="closeModal('modal-todo')">×</button>
+    </div>
+    <div class="form-row"><label>Attività *</label><input id="t-text" placeholder="es. Creare sito demo per Idraulico Amedeo"></div>
+    <div class="form-grid">
+      <div class="form-row"><label>Scadenza</label><input id="t-due" type="date"></div>
+      <div class="form-row">
+        <label>Tipo</label>
+        <select id="t-type">
+          <option value="once">Una tantum</option>
+          <option value="daily">Giornaliero</option>
+          <option value="weekly">Settimanale</option>
+          <option value="monthly">Mensile</option>
+        </select>
+      </div>
+    </div>
+    <div class="form-row">
+      <label>Categoria</label>
+      <select id="t-cat">
+        <option value="outreach">Outreach</option>
+        <option value="sito">Sito demo</option>
+        <option value="cliente">Cliente attivo</option>
+        <option value="admin">Admin</option>
+        <option value="altro">Altro</option>
+      </select>
+    </div>
+    <button class="btn btn-primary" style="width:100%;margin-top:4px" onclick="saveTodo()">Aggiungi</button>
+  </div>
+</div>
+
+<!-- MODAL RICEVUTA -->
+<div class="modal-bg" id="modal-receipt">
+  <div class="modal">
+    <div class="modal-title">
+      Nuova ricevuta
+      <button class="modal-close" onclick="closeModal('modal-receipt')">×</button>
+    </div>
+    <div class="form-row"><label>Cliente (nome/ragione sociale) *</label><input id="r-cliente" placeholder="es. Francesco Di Cristo"></div>
+    <div class="form-row"><label>Codice fiscale / P.IVA cliente</label><input id="r-cf" placeholder="es. DCFRCS85M..."></div>
+    <div class="form-row"><label>Descrizione prestazione *</label><textarea id="r-desc" placeholder="es. Creazione sito web professionale con ottimizzazione SEO locale e integrazione WhatsApp Business"></textarea></div>
+    <div class="form-grid">
+      <div class="form-row"><label>Importo (€) *</label><input id="r-importo" type="number" step="0.01" placeholder="250"></div>
+      <div class="form-row"><label>Data *</label><input id="r-data" type="date"></div>
+    </div>
+    <div class="form-row">
+      <label>Ritenuta d'acconto (20%) — solo se cliente con P.IVA</label>
+      <select id="r-ritenuta">
+        <option value="no">No (privato/no P.IVA)</option>
+        <option value="si">Sì (applica 20%)</option>
+      </select>
+    </div>
+    <div class="form-row" id="bollo-row" style="background:var(--yellow2);border:1px solid var(--yellow3);border-radius:8px;padding:10px;display:none">
+      <label style="color:var(--yellow)">⚠️ Marca da bollo obbligatoria</label>
+      <div class="text-sm" style="color:var(--text2);margin-top:4px">Per importi superiori a €77,47 è obbligatoria la marca da bollo da €2,00 da apporre sulla ricevuta originale.</div>
+      <div style="margin-top:8px;display:flex;align-items:center;gap:8px">
+        <input type="checkbox" id="r-bollo" style="width:auto" checked>
+        <label style="margin:0;font-size:12px;color:var(--text)">Confermo di apporre la marca da bollo da €2,00</label>
+      </div>
+    </div>
+    <button class="btn btn-primary" style="width:100%;margin-top:4px" onclick="saveReceipt()">Genera ricevuta</button>
+  </div>
+</div>
+
+<!-- MODAL PREVENTIVO -->
+<div class="modal-bg" id="modal-quote">
+  <div class="modal">
+    <div class="modal-title">
+      Nuovo preventivo
+      <button class="modal-close" onclick="closeModal('modal-quote')">×</button>
+    </div>
+    <div class="form-row"><label>Cliente *</label><input id="q-cliente" placeholder="Nome o ragione sociale"></div>
+    <div class="form-row"><label>Email cliente</label><input id="q-email" type="email" placeholder="email@cliente.it"></div>
+    <div class="form-row">
+      <label>Pacchetto</label>
+      <select id="q-pacchetto" onchange="updateQuotePrice()">
+        <option value="150">Starter — €150 una tantum + €19/mese</option>
+        <option value="250" selected>Professional — €250 una tantum + €29/mese</option>
+        <option value="400">Premium — €400 una tantum + €49/mese</option>
+        <option value="0">Personalizzato</option>
+      </select>
+    </div>
+    <div class="form-grid">
+      <div class="form-row"><label>Setup una tantum (€)</label><input id="q-setup" type="number" value="250"></div>
+      <div class="form-row"><label>Canone mensile (€)</label><input id="q-canone" type="number" value="29"></div>
+    </div>
+    <div class="form-row"><label>Servizi inclusi</label><textarea id="q-servizi" style="min-height:90px">• Sito web professionale 1 pagina, ottimizzato mobile
+• Bottone WhatsApp con messaggio precompilato
+• Sezione servizi, contatti e Google Maps
+• Recensioni Google in evidenza
+• Ottimizzazione SEO locale
+• 1 aggiornamento al mese incluso
+• Hosting e dominio personalizzato inclusi</textarea></div>
+    <div class="form-row"><label>Note aggiuntive</label><input id="q-note" placeholder="es. Dominio da acquistare separatamente..."></div>
+    <div class="form-row"><label>Valido fino al</label><input id="q-validita" type="date"></div>
+    <button class="btn btn-primary" style="width:100%;margin-top:4px" onclick="saveQuote()">Genera preventivo</button>
+  </div>
+</div>
+
+<!-- MODAL PREVENTIVO PREVIEW -->
+<div class="modal-bg" id="modal-quote-preview">
+  <div class="modal">
+    <div class="modal-title">
+      Preventivo
+      <button class="modal-close" onclick="closeModal('modal-quote-preview')">×</button>
+    </div>
+    <div id="quote-preview-content"></div>
+    <div class="flex-gap mt8">
+      <button class="btn btn-primary" style="flex:1" onclick="window.print()">🖨 Stampa / PDF</button>
+      <button class="btn btn-ghost" onclick="closeModal('modal-quote-preview')">Chiudi</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL RICEVUTA PREVIEW -->
+<div class="modal-bg" id="modal-receipt-preview">
+  <div class="modal">
+    <div class="modal-title">
+      Ricevuta
+      <button class="modal-close" onclick="closeModal('modal-receipt-preview')">×</button>
+    </div>
+    <div id="receipt-preview-content"></div>
+    <div class="flex-gap mt8">
+      <button class="btn btn-primary" style="flex:1" onclick="printReceipt()">🖨 Stampa / PDF</button>
+      <button class="btn btn-ghost" style="flex:1" onclick="closeModal('modal-receipt-preview')">Chiudi</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ============================================================
+// STORAGE
+// ============================================================
+const S = {
+  get: k => { try { return JSON.parse(localStorage.getItem('visibilia_'+k)) || [] } catch(e){ return [] } },
+  set: (k,v) => localStorage.setItem('visibilia_'+k, JSON.stringify(v)),
+  getObj: k => { try { return JSON.parse(localStorage.getItem('visibilia_'+k)) || {} } catch(e){ return {} } },
+  setObj: (k,v) => localStorage.setItem('visibilia_'+k, JSON.stringify(v))
+}
+
+// ============================================================
+// NAVIGATION
+// ============================================================
+function showPanel(id) {
+  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'))
+  document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'))
+  document.getElementById('panel-'+id).classList.add('active')
+  const tabs = document.querySelectorAll('.nav-tab')
+  const map = ['dashboard','leads','todo','ricevute','preventivi','impostazioni']
+  tabs[map.indexOf(id)]?.classList.add('active')
+  window.scrollTo({top:0, behavior:'smooth'})
+  if(id==='dashboard') renderDashboard()
+  if(id==='leads') renderLeads()
+  if(id==='todo') renderTodos('oggi')
+  if(id==='ricevute') renderReceipts()
+  if(id==='preventivi') renderQuotes()
+  if(id==='impostazioni') renderSettings()
+}
+
+function openModal(id){ document.getElementById(id).classList.add('open') }
+function closeModal(id){ document.getElementById(id).classList.remove('open') }
+
+// ============================================================
+// LEADS
+// ============================================================
+let currentLeadFilter = 'tutti'
+let editingLeadId = null
+
+const STATI = {
+  'Da contattare': 'badge-todo',
+  'Contattato': 'badge-sent',
+  'Demo inviata': 'badge-sent',
+  'Interessato': 'badge-interested',
+  'Trattativa': 'badge-interested',
+  'Chiuso': 'badge-closed',
+  'Non interessato': 'badge-lost'
+}
+
+function openLeadModal(id) {
+  editingLeadId = id || null
+  document.getElementById('lead-edit-id').value = id || ''
+  document.getElementById('modal-lead-title').textContent = id ? 'Modifica lead' : 'Nuovo lead'
+  if(id) {
+    const leads = S.get('leads')
+    const l = leads.find(x=>x.id===id)
+    if(l){
+      document.getElementById('l-nome').value = l.nome||''
+      document.getElementById('l-cat').value = l.categoria||''
+      document.getElementById('l-citta').value = l.citta||''
+      document.getElementById('l-tel').value = l.telefono||''
+      document.getElementById('l-email').value = l.email||''
+      document.getElementById('l-ind').value = l.indirizzo||''
+      document.getElementById('l-rating').value = l.rating||''
+      document.getElementById('l-rec').value = l.recensioni||''
+      document.getElementById('l-stato').value = l.stato||'Da contattare'
+      document.getElementById('l-note').value = l.note||''
+    }
+  } else {
+    ['l-nome','l-cat','l-citta','l-tel','l-ind','l-rating','l-rec','l-note'].forEach(id=>document.getElementById(id).value='')
+    document.getElementById('l-stato').value='Da contattare'
+  }
+  openModal('modal-lead')
+}
+
+function saveLead() {
+  const nome = document.getElementById('l-nome').value.trim()
+  if(!nome){ alert('Inserisci il nome'); return }
+  const leads = S.get('leads')
+  const id = editingLeadId || Date.now().toString()
+  const lead = {
+    id, nome,
+    categoria: document.getElementById('l-cat').value.trim(),
+    citta: document.getElementById('l-citta').value.trim(),
+    telefono: document.getElementById('l-tel').value.trim(),
+    email: document.getElementById('l-email').value.trim(),
+    indirizzo: document.getElementById('l-ind').value.trim(),
+    rating: parseFloat(document.getElementById('l-rating').value)||0,
+    recensioni: parseInt(document.getElementById('l-rec').value)||0,
+    stato: document.getElementById('l-stato').value,
+    note: document.getElementById('l-note').value.trim(),
+    data: new Date().toISOString().split('T')[0]
+  }
+  if(editingLeadId) {
+    const i = leads.findIndex(x=>x.id===editingLeadId)
+    if(i>=0) leads[i]=lead; else leads.push(lead)
+  } else { leads.push(lead) }
+  S.set('leads', leads)
+  closeModal('modal-lead')
+  renderLeads()
+  renderDashboard()
+}
+
+function deleteLead(id) {
+  if(!confirm('Eliminare questo lead?')) return
+  S.set('leads', S.get('leads').filter(x=>x.id!==id))
+  renderLeads(); renderDashboard()
+}
+
+function updateLeadStato(id, stato) {
+  const leads = S.get('leads')
+  const i = leads.findIndex(x=>x.id===id)
+  if(i>=0){ leads[i].stato=stato; S.set('leads',leads) }
+  renderLeads(); renderDashboard()
+}
+
+function filterLeads(f) {
+  currentLeadFilter = f
+  document.querySelectorAll('#panel-leads .tab2').forEach((t,i)=>{
+    const filters=['tutti','Da contattare','Contattato','Interessato','Chiuso']
+    t.classList.toggle('active', filters[i]===f)
+  })
+  renderLeads()
+}
+
+function renderLeads() {
+  let leads = S.get('leads')
+
+  // Popola dropdown città dinamicamente
+  const citySelect = document.getElementById('lead-city-filter')
+  if(citySelect) {
+    const currentCity = citySelect.value
+    const cities = [...new Set(leads.map(l=>l.citta).filter(Boolean))].sort()
+    citySelect.innerHTML = '<option value="">Tutte le città</option>' +
+      cities.map(c=>`<option value="${c}" ${c===currentCity?'selected':''}>${c}</option>`).join('')
+  }
+
+  // Filtro stato
+  if(currentLeadFilter!=='tutti') leads = leads.filter(l=>l.stato===currentLeadFilter)
+
+  // Filtro categoria
+  const catFilter = document.getElementById('lead-cat-filter')?.value?.toLowerCase()
+  if(catFilter) leads = leads.filter(l=>(l.categoria||'').toLowerCase().includes(catFilter))
+
+  // Filtro città
+  const cityFilter = document.getElementById('lead-city-filter')?.value
+  if(cityFilter) leads = leads.filter(l=>l.citta===cityFilter)
+
+  // Ricerca per nome
+  const search = document.getElementById('lead-search')?.value?.toLowerCase()
+  if(search) leads = leads.filter(l=>l.nome?.toLowerCase().includes(search))
+
+  // Ordina per recensioni decrescenti
+  leads.sort((a,b)=>(parseInt(b.recensioni)||0)-(parseInt(a.recensioni)||0))
+
+  const el = document.getElementById('leads-list')
+  if(!leads.length){
+    el.innerHTML=`<div class="empty"><div class="empty-icon">📋</div><div class="empty-text">Nessun lead trovato. Prova a cambiare i filtri.</div></div>`
+    return
+  }
+  el.innerHTML = leads.map(l=>`
+    <div class="lead-card">
+      <div class="lead-header">
+        <div>
+          <div class="lead-name">${l.nome}</div>
+          <div class="lead-meta">${[l.categoria,l.citta].filter(Boolean).join(' · ')}${l.rating?` · ⭐${l.rating} (${l.recensioni} rec.)`:''}</div>
+        </div>
+        <span class="badge ${STATI[l.stato]||'badge-new'}">${l.stato}</span>
+      </div>
+      ${l.telefono?`<div class="text-sm">📞 <a href="tel:${l.telefono}" style="color:var(--yellow);text-decoration:none">${l.telefono}</a></div>`:''}
+      ${l.email?`<div class="text-sm">✉️ <a href="javascript:void(0)" style="color:var(--text2);text-decoration:none">${l.email}</a></div>`:''}
+      ${l.note?`<div class="text-sm mt8" style="font-style:italic">"${l.note}"</div>`:''}
+      <div class="lead-actions">
+        <select style="width:auto;font-size:11px;padding:4px 8px" onchange="updateLeadStato('${l.id}',this.value)">
+          ${['Da contattare','Contattato','Demo inviata','Interessato','Trattativa','Chiuso','Non interessato'].map(s=>`<option ${s===l.stato?'selected':''}>${s}</option>`).join('')}
+        </select>
+        <button class="btn btn-ghost btn-sm" onclick="sendOutreachEmail('${l.id}')">✉️ Email</button>
+        <button class="btn btn-ghost btn-sm" onclick="openLeadModal('${l.id}')">✏️</button>
+        <button class="btn btn-danger btn-sm" onclick="deleteLead('${l.id}')">🗑</button>
+      </div>
+    </div>
+  `).join('')
+}
+
+// IMPORT XLSX (CSV fallback)
+function openImportModal(){ openModal('modal-import') }
+
+function importXLSX(input) {
+  const file = input.files[0]
+  if(!file) return
+
+  const isCSV = file.name.toLowerCase().endsWith('.csv')
+  const reader = new FileReader()
+
+  reader.onload = e => {
+    let rows = []
+    let headers = []
+
+    if(isCSV) {
+      // Parser CSV robusto
+      const text = e.target.result
+      function parseCSV(text) {
+        const result = []
+        const lines = text.split('\n')
+        for(let line of lines) {
+          if(!line.trim()) continue
+          const row = []
+          let field = '', inQuotes = false
+          for(let i=0; i<line.length; i++) {
+            const ch = line[i]
+            if(ch==='"') { if(inQuotes && line[i+1]==='"'){field+='"';i++} else inQuotes=!inQuotes }
+            else if(ch===',' && !inQuotes) { row.push(field.trim()); field='' }
+            else field += ch
+          }
+          row.push(field.trim())
+          result.push(row)
+        }
+        return result
+      }
+      const parsed = parseCSV(text)
+      if(parsed.length < 2) { document.getElementById('import-preview').innerHTML='<div style="color:var(--red)">File CSV non riconosciuto</div>'; return }
+      headers = parsed[0].map(h=>h.toLowerCase().replace(/['"]/g,'').trim())
+      rows = parsed.slice(1)
+    } else {
+      // XLSX con SheetJS
+      const data = new Uint8Array(e.target.result)
+      const wb = XLSX.read(data, {type:'array'})
+      const ws = wb.Sheets[wb.SheetNames[0]]
+      const json = XLSX.utils.sheet_to_json(ws, {header:1})
+      if(json.length < 2) { document.getElementById('import-preview').innerHTML='<div style="color:var(--red)">File XLSX non riconosciuto</div>'; return }
+      headers = json[0].map(h=>String(h||'').toLowerCase().trim())
+      rows = json.slice(1)
+    }
+
+    // Mapping intestazioni
+    const mapping = {
+      'nome attività':'nome', 'nome attivit\u00e0':'nome',
+      'città':'citta', 'citt\u00e0':'citta', 'city':'citta',
+      'rating ⭐':'rating', 'stato contatto':'stato',
+      'data trovato':'data'
+    }
+    headers = headers.map(h=>mapping[h]||h)
+
+    const leads = S.get('leads')
+    let added = 0
+
+    for(let vals of rows) {
+      if(!vals || vals.length < 2) continue
+      const row = {}
+      headers.forEach((h,j)=>row[h]=String(vals[j]||'').replace(/^"|"$/g,'').trim())
+      const nome = row['nome']||''
+      if(!nome) continue
+      if(leads.find(l=>l.nome===nome && l.telefono===(row['telefono']||''))) continue
+      leads.push({
+        id: Date.now().toString()+Math.random(),
+        nome,
+        categoria: row['categoria']||'',
+        citta: row['citta']||row['città']||'',
+        telefono: row['telefono']||'',
+        indirizzo: row['indirizzo']||'',
+        rating: parseFloat(row['rating'])||0,
+        recensioni: parseInt(row['recensioni'])||0,
+        stato: row['stato']||row['stato contatto']||'Da contattare',
+        note: row['note']||'',
+        data: new Date().toISOString().split('T')[0]
+      })
+      added++
+    }
+
+    S.set('leads', leads)
+    document.getElementById('import-preview').innerHTML=`<div style="color:var(--green);font-size:13px">✅ ${added} lead importati con successo!</div>`
+    setTimeout(()=>{ closeModal('modal-import'); renderLeads(); renderDashboard() }, 1200)
+  }
+
+  if(isCSV) reader.readAsText(file, 'UTF-8')
+  else reader.readAsArrayBuffer(file)
+}
+
+// ============================================================
+// TODO
+// ============================================================
+let currentTodoFilter = 'oggi'
+
+function openTodoModal(){ openModal('modal-todo'); document.getElementById('t-due').value=today() }
+
+function today(){ return new Date().toISOString().split('T')[0] }
+function thisWeekEnd(){ const d=new Date(); d.setDate(d.getDate()+(7-d.getDay())); return d.toISOString().split('T')[0] }
+
+function saveTodo() {
+  const text = document.getElementById('t-text').value.trim()
+  if(!text){ alert('Inserisci il testo'); return }
+  const todos = S.get('todos')
+  todos.push({
+    id: Date.now().toString(),
+    text,
+    due: document.getElementById('t-due').value,
+    type: document.getElementById('t-type').value,
+    cat: document.getElementById('t-cat').value,
+    done: false,
+    created: today()
+  })
+  S.set('todos', todos)
+  closeModal('modal-todo')
+  renderTodos(currentTodoFilter)
+  renderDashboard()
+}
+
+function toggleTodo(id) {
+  const todos = S.get('todos')
+  const i = todos.findIndex(t=>t.id===id)
+  if(i>=0){ todos[i].done=!todos[i].done; S.set('todos',todos) }
+  renderTodos(currentTodoFilter)
+  renderDashboard()
+}
+
+function deleteTodo(id) {
+  S.set('todos', S.get('todos').filter(t=>t.id!==id))
+  renderTodos(currentTodoFilter)
+}
+
+function filterTodos(f) {
+  currentTodoFilter = f
+  document.querySelectorAll('#panel-todo .tab2').forEach((t,i)=>{
+    const filters=['oggi','settimana','ricorrenti','tutti']
+    t.classList.toggle('active', filters[i]===f)
+  })
+  renderTodos(f)
+}
+
+const CAT_COLORS = { outreach:'var(--yellow)', sito:'var(--blue)', cliente:'var(--green)', admin:'var(--orange)', altro:'var(--text2)' }
+
+function renderTodos(filter) {
+  let todos = S.get('todos')
+  const t = today()
+  const we = thisWeekEnd()
+  if(filter==='oggi') todos = todos.filter(x=>!x.done && (x.due===t || x.type==='daily' || (x.type==='weekly' && new Date(x.due).getDay()===new Date().getDay())))
+  else if(filter==='settimana') todos = todos.filter(x=>!x.done && x.due>=t && x.due<=we)
+  else if(filter==='ricorrenti') todos = todos.filter(x=>x.type!=='once')
+  const el = document.getElementById('todo-list')
+  if(!todos.length){
+    el.innerHTML=`<div class="empty"><div class="empty-icon">✅</div><div class="empty-text">${filter==='oggi'?'Nessun task per oggi. Ottimo!':'Nessun task trovato.'}</div></div>`
+    return
+  }
+  el.innerHTML = `<div class="card">`+todos.map(t=>{
+    const overdue = t.due && t.due < today() && !t.done
+    const typeLabel = {once:'',daily:'↻ giornaliero',weekly:'↻ settimanale',monthly:'↻ mensile'}[t.type]||''
+    return `
+    <div class="todo-item">
+      <div class="todo-check ${t.done?'done':''}" onclick="toggleTodo('${t.id}')"></div>
+      <div style="flex:1">
+        <div class="todo-text ${t.done?'done':''}">${t.text}</div>
+        <div class="flex-gap mt8" style="gap:6px;flex-wrap:wrap">
+          ${t.due?`<div class="todo-due ${overdue?'overdue':''}">${overdue?'⚠️ ':''}${t.due}</div>`:''}
+          <span class="todo-tag" style="color:${CAT_COLORS[t.cat]||'var(--text2)'}">${t.cat||'altro'}</span>
+          ${typeLabel?`<span class="todo-recurring">${typeLabel}</span>`:''}
+        </div>
+      </div>
+      <button class="btn btn-danger btn-sm" onclick="deleteTodo('${t.id}')">×</button>
+    </div>`
+  }).join('')+'</div>'
+}
+
+// ============================================================
+// RICEVUTE
+// ============================================================
+function openReceiptModal(){
+  document.getElementById('r-data').value = today()
+  document.getElementById('r-importo').value = ''
+  document.getElementById('r-cliente').value = ''
+  document.getElementById('r-cf').value = ''
+  document.getElementById('r-desc').value = ''
+  openModal('modal-receipt')
+}
+
+function getReceiptNum() {
+  const receipts = S.get('receipts')
+  const year = new Date().getFullYear()
+  const thisYear = receipts.filter(r=>r.anno===year)
+  return (thisYear.length+1).toString().padStart(3,'0')
+}
+
+function saveReceipt() {
+  const cliente = document.getElementById('r-cliente').value.trim()
+  const desc = document.getElementById('r-desc').value.trim()
+  const importo = parseFloat(document.getElementById('r-importo').value)
+  if(!cliente||!desc||!importo){ alert('Compila tutti i campi obbligatori'); return }
+  const anno = new Date().getFullYear()
+  const ritenuta = document.getElementById('r-ritenuta').value==='si'
+  const receipt = {
+    id: Date.now().toString(),
+    num: getReceiptNum(),
+    anno,
+    cliente,
+    cf: document.getElementById('r-cf').value.trim(),
+    desc,
+    importo,
+    ritenuta,
+    data: document.getElementById('r-data').value,
+    netto: ritenuta ? importo * 0.8 : importo
+  }
+  const receipts = S.get('receipts')
+  receipts.push(receipt)
+  S.set('receipts', receipts)
+  closeModal('modal-receipt')
+  showReceiptPreview(receipt)
+  renderReceipts()
+}
+
+function showReceiptPreview(r) {
+  const ritenuta = r.ritenuta ? (r.importo*0.2).toFixed(2) : null
+  const bollo = r.importo > 77.47
+  const bolloApplicato = bollo && r.bolloConfermato
+  document.getElementById('receipt-preview-content').innerHTML = `
+    <div class="receipt-preview" id="print-area">
+
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:20px">
+        <div>
+          <div style="font-size:18px;font-weight:600;margin-bottom:2px">RICEVUTA</div>
+          <div style="font-size:11px;color:#888">per prestazione di lavoro autonomo occasionale</div>
+        </div>
+        <div style="text-align:right">
+          <div style="font-size:13px;font-weight:600">N° ${r.num}/${r.anno}</div>
+          <div style="font-size:12px;color:#888">${r.data}</div>
+        </div>
+      </div>
+
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px">
+        <div style="background:#f9f9f9;border-radius:8px;padding:12px">
+          <div style="font-size:10px;color:#888;text-transform:uppercase;letter-spacing:1px;margin-bottom:6px">Prestatore</div>
+          <div style="font-size:13px;font-weight:600">Fabrizio [Cognome]</div>
+          <div style="font-size:11px;color:#666;margin-top:2px">C.F. [TUO_CF]</div>
+          <div style="font-size:11px;color:#666">Treviso (TV)</div>
+        </div>
+        <div style="background:#f9f9f9;border-radius:8px;padding:12px">
+          <div style="font-size:10px;color:#888;text-transform:uppercase;letter-spacing:1px;margin-bottom:6px">Committente</div>
+          <div style="font-size:13px;font-weight:600">${r.cliente}</div>
+          ${r.cf?`<div style="font-size:11px;color:#666;margin-top:2px">${r.cf}</div>`:''}
+        </div>
+      </div>
+
+      <div style="margin-bottom:16px;padding:12px;background:#f9f9f9;border-radius:8px">
+        <div style="font-size:10px;color:#888;text-transform:uppercase;letter-spacing:1px;margin-bottom:6px">Descrizione prestazione</div>
+        <div style="font-size:12px;line-height:1.6;color:#333">${r.desc}</div>
+      </div>
+
+      <div style="border-top:1px solid #e0e0e0;padding-top:12px;margin-bottom:12px">
+        <div class="receipt-row"><span>Compenso lordo</span><span>€ ${r.importo.toFixed(2)}</span></div>
+        ${ritenuta?`<div class="receipt-row"><span>Ritenuta d'acconto 20%<br><small style="color:#aaa">art. 25 D.P.R. 600/1973</small></span><span style="color:#e53e3e">- € ${ritenuta}</span></div>`:''}
+        ${bollo?`<div class="receipt-row"><span>Marca da bollo<br><small style="color:#aaa">art. 13 Tariffa D.P.R. 642/1972</small></span><span style="color:#e53e3e">€ 2,00 ${bolloApplicato?'✓ applicata':'(da apporre)'}</span></div>`:''}
+        <div class="receipt-total"><span>Netto a ricevere</span><span>€ ${r.netto.toFixed(2)}</span></div>
+      </div>
+
+      <div style="background:#fff8e0;border:1px solid #f5c518;border-radius:8px;padding:12px;font-size:11px;color:#666;line-height:1.7;margin-bottom:16px">
+        <strong style="color:#333">Dichiarazione del prestatore:</strong><br>
+        Il sottoscritto dichiara che il presente compenso costituisce reddito diverso ai sensi dell'<strong>art. 67, comma 1, lett. l) del TUIR (D.P.R. 917/1986)</strong> e non è soggetto ad IVA trattandosi di prestazione occasionale non esercitata abitualmente.<br>
+        ${!ritenuta?`Il compenso <strong>non è soggetto a ritenuta d'acconto</strong> in quanto il committente è un privato privo di partita IVA.`:`Il compenso è <strong>soggetto a ritenuta d'acconto del 20%</strong> ai sensi dell'art. 25 D.P.R. 600/1973.`}
+      </div>
+
+      ${bollo?`<div style="background:#fef2f2;border:1px solid #fca5a5;border-radius:8px;padding:10px;font-size:11px;color:#666;margin-bottom:16px">
+        ⚠️ <strong style="color:#333">Marca da bollo obbligatoria</strong> — Importo superiore a €77,47. Apporre marca da bollo da €2,00 sull'originale cartaceo (art. 13 Tariffa allegata al D.P.R. 26/10/1972 n. 642).
+      </div>`:''}
+
+      <div style="border-top:1px solid #e0e0e0;padding-top:16px;margin-top:8px">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;font-size:12px">
+          <div>
+            <div style="color:#888;margin-bottom:20px">Luogo e data: Treviso, ${r.data}</div>
+            <div style="border-top:1px solid #ccc;padding-top:6px;color:#aaa;font-size:11px">Firma del prestatore</div>
+          </div>
+          <div>
+            <div style="color:#888;margin-bottom:20px">Per ricevuta:</div>
+            <div style="border-top:1px solid #ccc;padding-top:6px;color:#aaa;font-size:11px">Firma del committente</div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  `
+  openModal('modal-receipt-preview')
+}
+
+function printReceipt() { window.print() }
+
+function renderReceipts() {
+  const receipts = S.get('receipts')
+  const year = new Date().getFullYear()
+  const thisYear = receipts.filter(r=>r.anno===year)
+  const totale = thisYear.reduce((s,r)=>s+r.importo,0)
+  const soglia = 5000
+  const pct = Math.min(100, Math.round((totale/soglia)*100))
+
+  document.getElementById('receipt-summary').innerHTML = `
+    <div class="flex-between mb8">
+      <div>
+        <div style="font-size:22px;font-weight:500">€ ${totale.toFixed(2)}</div>
+        <div class="text-sm">fatturato ${year}</div>
+      </div>
+      <div style="text-align:right">
+        <div style="font-size:13px;color:${totale>4000?'var(--orange)':'var(--green)'}">
+          ${totale>5000?'⚠️ Soglia superata':`€ ${(soglia-totale).toFixed(2)} alla soglia`}
+        </div>
+        <div class="text-sm">soglia 5.000€/anno</div>
+      </div>
+    </div>
+    <div class="revenue-bar"><div class="revenue-fill" style="width:${pct}%;background:${totale>4000?'var(--orange)':'var(--yellow)'}"></div></div>
+    <div class="text-sm mt8">${pct}% della soglia prestazione occasionale</div>
+  `
+
+  const el = document.getElementById('receipts-list')
+  if(!receipts.length){
+    el.innerHTML=`<div class="empty"><div class="empty-icon">🧾</div><div class="empty-text">Nessuna ricevuta ancora. Crea la prima quando chiudi il tuo primo cliente!</div></div>`
+    return
+  }
+  el.innerHTML = [...receipts].reverse().map(r=>`
+    <div class="card" style="margin-bottom:10px">
+      <div class="flex-between">
+        <div>
+          <div style="font-size:14px;font-weight:500">${r.cliente}</div>
+          <div class="text-sm">${r.data} · Ricevuta n° ${r.num}/${r.anno}</div>
+        </div>
+        <div style="text-align:right">
+          <div style="font-size:16px;font-weight:500;color:var(--green)">€ ${r.importo.toFixed(2)}</div>
+          ${r.ritenuta?`<div class="text-sm">netto € ${r.netto.toFixed(2)}</div>`:''}
+        </div>
+      </div>
+      <div class="text-sm mt8" style="font-style:italic">${r.desc.substring(0,80)}${r.desc.length>80?'...':''}</div>
+      <div class="flex-gap mt8">
+        <button class="btn btn-ghost btn-sm" onclick="showReceiptPreview(${JSON.stringify(r).replace(/"/g,'&quot;')})">👁 Visualizza</button>
+        <button class="btn btn-danger btn-sm" onclick="deleteReceipt('${r.id}')">🗑</button>
+      </div>
+    </div>
+  `).join('')
+}
+
+function deleteReceipt(id){
+  if(!confirm('Eliminare questa ricevuta?')) return
+  S.set('receipts', S.get('receipts').filter(r=>r.id!==id))
+  renderReceipts()
+}
+
+// ============================================================
+// DASHBOARD
+// ============================================================
+function renderDashboard() {
+  const d = new Date()
+  document.getElementById('dash-date').textContent = d.toLocaleDateString('it-IT',{weekday:'long',day:'numeric',month:'long',year:'numeric'})
+
+  const leads = S.get('leads')
+  const todos = S.get('todos')
+  const receipts = S.get('receipts')
+  const year = d.getFullYear()
+
+  const chiusi = leads.filter(l=>l.stato==='Chiuso').length
+  const attivi = chiusi
+  const ricorrente = attivi * 29
+  const fatturato = receipts.filter(r=>r.anno===year).reduce((s,r)=>s+r.importo,0)
+  const todayTasks = todos.filter(t=>!t.done&&(t.due===today()||t.type==='daily'))
+
+  document.getElementById('dash-stats').innerHTML = `
+    <div class="stat-card"><div class="stat-num">${leads.length}</div><div class="stat-lbl">Lead totali</div></div>
+    <div class="stat-card"><div class="stat-num" style="color:var(--green)">${chiusi}</div><div class="stat-lbl">Clienti attivi</div></div>
+    <div class="stat-card"><div class="stat-num">€${ricorrente}</div><div class="stat-lbl">Ricorrente/mese</div></div>
+    <div class="stat-card"><div class="stat-num">€${Math.round(fatturato)}</div><div class="stat-lbl">Fatturato ${year}</div></div>
+  `
+
+  // Pipeline
+  const pipeStati = [
+    { label:'Da contattare', stati:['Da contattare'], color:'var(--yellow)' },
+    { label:'In trattativa', stati:['Contattato','Demo inviata','Interessato','Trattativa'], color:'var(--purple)' },
+    { label:'Chiusi', stati:['Chiuso'], color:'var(--green)' }
+  ]
+  document.getElementById('dash-pipeline').innerHTML = pipeStati.map(p=>{
+    const items = leads.filter(l=>p.stati.includes(l.stato))
+    return `
+      <div class="pipe-col">
+        <div class="pipe-col-title" style="color:${p.color}">${p.label}<span class="pipe-count">${items.length}</span></div>
+        ${items.slice(0,3).map(l=>`
+          <div class="pipe-item">
+            <div class="pipe-item-name">${l.nome.substring(0,22)}${l.nome.length>22?'...':''}</div>
+            <div class="pipe-item-meta">${l.citta||'-'}</div>
+          </div>
+        `).join('')}
+        ${items.length>3?`<div class="text-sm" style="text-align:center;padding:6px 0">+${items.length-3} altri</div>`:''}
+        ${!items.length?`<div class="text-sm" style="text-align:center;padding:10px 0;color:var(--text3)">—</div>`:''}
+      </div>
+    `
+  }).join('')
+
+  // Today todos
+  const dashTodos = document.getElementById('dash-today-todo')
+  if(!todayTasks.length){
+    dashTodos.innerHTML=`<div class="text-sm" style="padding:8px 0">Nessun task per oggi 🎉</div>`
+  } else {
+    dashTodos.innerHTML = todayTasks.slice(0,4).map(t=>`
+      <div class="todo-item" style="padding:8px 0">
+        <div class="todo-check ${t.done?'done':''}" onclick="toggleTodoDash('${t.id}')"></div>
+        <div class="todo-text ${t.done?'done':''}">${t.text}</div>
+        <span class="todo-tag" style="color:${CAT_COLORS[t.cat]}">${t.cat}</span>
+      </div>
+    `).join('')
+  }
+
+  // Revenue bar
+  const soglia = 5000
+  const pct = Math.min(100, Math.round((fatturato/soglia)*100))
+  document.getElementById('dash-revenue').innerHTML = `
+    <div class="flex-between mb8">
+      <div><span style="font-size:20px;font-weight:500">€ ${fatturato.toFixed(2)}</span> <span class="text-sm">/ anno</span></div>
+      <div class="text-sm" style="color:${fatturato>4000?'var(--orange)':'var(--text2)'}">Soglia 5.000€ — ${pct}%</div>
+    </div>
+    <div class="revenue-bar"><div class="revenue-fill" style="width:${pct}%;background:${fatturato>4000?'var(--orange)':'var(--yellow)'}"></div></div>
+    <div class="flex-between mt8">
+      <div class="text-sm">Ricorrente mensile stimato</div>
+      <div style="font-size:14px;font-weight:500;color:var(--green)">€ ${ricorrente}/mese</div>
+    </div>
+  `
+}
+
+function toggleTodoDash(id){
+  const todos = S.get('todos')
+  const i = todos.findIndex(t=>t.id===id)
+  if(i>=0){ todos[i].done=!todos[i].done; S.set('todos',todos) }
+  renderDashboard()
+}
+
+// ============================================================
+// COPY LINK
+// ============================================================
+function copyLink(url) {
+  navigator.clipboard.writeText(url).then(()=>{
+    const btn = event.target
+    const orig = btn.textContent
+    btn.textContent = '✅ Copiato!'
+    btn.style.color = 'var(--green)'
+    setTimeout(()=>{ btn.textContent = orig; btn.style.color = '' }, 2000)
+  })
+}
+
+// ============================================================
+// EMAIL OUTREACH
+// ============================================================
+function sendOutreachEmail(id) {
+  const leads = S.get('leads')
+  const l = leads.find(x=>x.id===id)
+  if(!l) return
+  const contattato = ['Contattato','Demo inviata','Interessato','Trattativa','Chiuso'].includes(l.stato)
+  let subject, body
+  if(!contattato) {
+    subject = `Ho creato qualcosa per te — ${l.nome}`
+    body = `Ciao,\n\nmi chiamo Fabrizio e ho visto la tua attività su Google Maps.\n\nHai ${l.recensioni||'molte'} recensioni${l.rating?` con un rating di ${l.rating} stelle`:''} — davvero ottimo. Nonostante questo, non hai ancora un sito web e stai perdendo clienti ogni giorno che cercano online.\n\nHo creato un sito demo per te, senza impegno:\n👉 [INSERISCI LINK DEMO]\n\nSe ti piace e vuoi tenerlo, possiamo parlarne. Nessun costo nascosto, nessun abbonamento forzato.\n\nA presto,\nFabrizio — Visibilia`
+  } else {
+    subject = `Follow-up — ${l.nome}`
+    body = `Ciao,\n\nti scrivo di nuovo riguardo al sito web che ti avevo mostrato.\n\nVolevo sapere se hai avuto modo di vederlo e se hai domande. Sono disponibile per una breve chiamata quando preferisci.\n\nIl link era: [INSERISCI LINK DEMO]\n\nA presto,\nFabrizio — Visibilia`
+  }
+  const to = l.email ? `&to=${encodeURIComponent(l.email)}` : ''
+  window.open(`https://mail.google.com/mail/u/visibilia.contatti@gmail.com/?view=cm&fs=1${to}&su=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`, '_blank')
+  if(l.stato==='Da contattare') updateLeadStato(id,'Contattato')
+}
+
+// ============================================================
+// MARCA DA BOLLO — listener dinamico
+// ============================================================
+document.addEventListener('input', function(e){
+  if(e.target.id==='r-importo'){
+    const v = parseFloat(e.target.value)||0
+    document.getElementById('bollo-row').style.display = v>77.47 ? 'block' : 'none'
+  }
+})
+
+// ============================================================
+// PREVENTIVI
+// ============================================================
+const PACCHETTI = {
+  '150':{ setup:150, canone:19, nome:'Starter' },
+  '250':{ setup:250, canone:29, nome:'Professional' },
+  '400':{ setup:400, canone:49, nome:'Premium' },
+  '0':  { setup:0,   canone:0,  nome:'Personalizzato' }
+}
+
+function openQuoteModal() {
+  const d = new Date(); d.setDate(d.getDate()+14)
+  document.getElementById('q-validita').value = d.toISOString().split('T')[0]
+  document.getElementById('q-cliente').value = ''
+  document.getElementById('q-email').value = ''
+  document.getElementById('q-note').value = ''
+  openModal('modal-quote')
+}
+
+function updateQuotePrice() {
+  const val = document.getElementById('q-pacchetto').value
+  const p = PACCHETTI[val]
+  if(p && val!=='0'){ document.getElementById('q-setup').value=p.setup; document.getElementById('q-canone').value=p.canone }
+}
+
+function getQuoteNum() {
+  const quotes = S.get('quotes')
+  const year = new Date().getFullYear()
+  return (quotes.filter(q=>q.anno===year).length+1).toString().padStart(3,'0')
+}
+
+function saveQuote() {
+  const cliente = document.getElementById('q-cliente').value.trim()
+  if(!cliente){ alert('Inserisci il nome del cliente'); return }
+  const setup = parseFloat(document.getElementById('q-setup').value)||0
+  const canone = parseFloat(document.getElementById('q-canone').value)||0
+  const pval = document.getElementById('q-pacchetto').value
+  const quote = {
+    id: Date.now().toString(), num: getQuoteNum(), anno: new Date().getFullYear(),
+    cliente, email: document.getElementById('q-email').value.trim(),
+    pacchetto: PACCHETTI[pval]?.nome||'Personalizzato',
+    setup, canone,
+    servizi: document.getElementById('q-servizi').value.trim(),
+    note: document.getElementById('q-note').value.trim(),
+    validita: document.getElementById('q-validita').value,
+    data: today(), stato: 'Inviato'
+  }
+  const quotes = S.get('quotes'); quotes.push(quote); S.set('quotes', quotes)
+  closeModal('modal-quote'); showQuotePreview(quote); renderQuotes()
+}
+
+function showQuotePreview(q) {
+  document.getElementById('quote-preview-content').innerHTML = `
+    <div class="receipt-preview" id="print-area">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:20px">
+        <div><h2 style="font-size:22px;margin-bottom:2px">Visibilia</h2><div style="font-size:11px;color:#888">Siti web per artigiani locali</div></div>
+        <div style="text-align:right"><div style="font-size:13px;font-weight:600">PREVENTIVO</div><div style="font-size:12px;color:#888">N° ${q.num}/${q.anno} · ${q.data}</div></div>
+      </div>
+      <div style="background:#f9f9f9;border-radius:8px;padding:14px;margin-bottom:16px">
+        <div style="font-size:11px;color:#888;margin-bottom:2px">Preparato per</div>
+        <div style="font-size:16px;font-weight:600">${q.cliente}</div>
+        ${q.email?`<div style="font-size:12px;color:#666">${q.email}</div>`:''}
+      </div>
+      <div style="margin-bottom:16px">
+        <div style="font-size:13px;font-weight:600;margin-bottom:8px">Pacchetto: ${q.pacchetto}</div>
+        <div style="font-size:12px;line-height:1.8;color:#444;white-space:pre-line">${q.servizi}</div>
+      </div>
+      <div style="border-top:1px solid #e0e0e0;padding-top:14px;margin-bottom:14px">
+        <div class="receipt-row"><span>Setup una tantum</span><span><strong>€ ${q.setup.toFixed(2)}</strong></span></div>
+        <div class="receipt-row"><span>Canone mensile</span><span><strong>€ ${q.canone.toFixed(2)}/mese</strong></span></div>
+        ${q.note?`<div style="font-size:11px;color:#888;margin-top:6px">${q.note}</div>`:''}
+      </div>
+      <div style="background:#fff8e0;border:1px solid #f5c518;border-radius:8px;padding:14px;margin-bottom:16px">
+        <div style="font-size:12px;font-weight:600;margin-bottom:6px">Come accettare</div>
+        <div style="font-size:12px;color:#555;line-height:1.7">Per accettare è sufficiente rispondere a questa email con "Accetto" oppure firmare e restituire questo documento. Il sito sarà online entro 48 ore dalla conferma.</div>
+      </div>
+      <div style="border-top:1px solid #e0e0e0;padding-top:14px">
+        <div style="font-size:12px;color:#888;margin-bottom:20px">Preventivo valido fino al: <strong>${q.validita}</strong></div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px">
+          <div><div style="font-size:11px;color:#888;margin-bottom:4px">Fabrizio — Visibilia</div><div style="border-top:1px solid #ccc;padding-top:4px;font-size:11px;color:#aaa">Firma</div></div>
+          <div><div style="font-size:11px;color:#888;margin-bottom:4px">${q.cliente} — Accettazione</div><div style="border-top:1px solid #ccc;padding-top:4px;font-size:11px;color:#aaa">Data e firma</div></div>
+        </div>
+      </div>
+    </div>`
+  openModal('modal-quote-preview')
+}
+
+function renderQuotes() {
+  const quotes = S.get('quotes')
+  const el = document.getElementById('quotes-list')
+  if(!quotes||!el) return
+  if(!quotes.length){
+    el.innerHTML=`<div class="empty"><div class="empty-icon">📄</div><div class="empty-text">Nessun preventivo. Creane uno per un cliente interessato.</div></div>`
+    return
+  }
+  el.innerHTML = [...quotes].reverse().map(q=>`
+    <div class="card" style="margin-bottom:10px">
+      <div class="flex-between">
+        <div><div style="font-size:14px;font-weight:500">${q.cliente}</div><div class="text-sm">${q.data} · N°${q.num}/${q.anno} · ${q.pacchetto}</div></div>
+        <div style="text-align:right"><div style="font-size:15px;font-weight:500">€${q.setup}</div><div class="text-sm">+€${q.canone}/mese</div></div>
+      </div>
+      <div class="flex-gap mt8">
+        <select style="width:auto;font-size:11px;padding:4px 8px" onchange="updateQuoteStato('${q.id}',this.value)">
+          ${['Inviato','In attesa','Accettato','Rifiutato'].map(s=>`<option ${s===q.stato?'selected':''}>${s}</option>`).join('')}
+        </select>
+        <button class="btn btn-ghost btn-sm" onclick="showQuotePreview(${JSON.stringify(q).replace(/"/g,'&quot;')})">👁</button>
+        ${q.email?`<button class="btn btn-ghost btn-sm" onclick="window.open('mailto:${q.email}?subject=Preventivo Visibilia N°${q.num}')">✉️</button>`:''}
+        <button class="btn btn-danger btn-sm" onclick="deleteQuote('${q.id}')">🗑</button>
+      </div>
+    </div>`).join('')
+}
+
+function updateQuoteStato(id,stato){
+  const quotes=S.get('quotes'); const i=quotes.findIndex(q=>q.id===id)
+  if(i>=0){quotes[i].stato=stato;S.set('quotes',quotes)} renderQuotes()
+}
+
+function deleteQuote(id){
+  if(!confirm('Eliminare?')) return
+  S.set('quotes',S.get('quotes').filter(q=>q.id!==id)); renderQuotes()
+}
+
+// ============================================================
+// BACKUP / RIPRISTINO
+// ============================================================
+function exportBackup() {
+  const data = {
+    version: '1.0',
+    exportedAt: new Date().toISOString(),
+    leads: S.get('leads'),
+    todos: S.get('todos'),
+    receipts: S.get('receipts'),
+    quotes: S.get('quotes')
+  }
+  const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' })
+  const url = URL.createObjectURL(blob)
+  const a = document.createElement('a')
+  const date = new Date().toISOString().split('T')[0]
+  a.href = url
+  a.download = `visibilia_backup_${date}.json`
+  a.click()
+  URL.revokeObjectURL(url)
+  // Salva timestamp ultimo backup
+  localStorage.setItem('visibilia_last_backup', new Date().toISOString())
+  document.getElementById('backup-status').innerHTML = `<div style="color:var(--green);font-size:12px;margin-top:4px">✓ Backup esportato — salvalo su Google Drive!</div>`
+  renderSettings()
+}
+
+function importBackup(input) {
+  const file = input.files[0]
+  if(!file) return
+  const reader = new FileReader()
+  reader.onload = e => {
+    try {
+      const data = JSON.parse(e.target.result)
+      if(!data.version) { alert('File non valido'); return }
+      if(!confirm(`Ripristinare il backup del ${data.exportedAt?.split('T')[0]}?\n\nQuesto sovrascriverà tutti i dati attuali.`)) return
+      if(data.leads) S.set('leads', data.leads)
+      if(data.todos) S.set('todos', data.todos)
+      if(data.receipts) S.set('receipts', data.receipts)
+      if(data.quotes) S.set('quotes', data.quotes)
+      document.getElementById('backup-status').innerHTML = `<div style="color:var(--green);font-size:12px;margin-top:4px">✓ Backup ripristinato con successo!</div>`
+      renderSettings()
+      renderDashboard()
+    } catch(err) {
+      alert('Errore nel file di backup. Assicurati che sia un JSON valido.')
+    }
+  }
+  reader.readAsText(file)
+}
+
+function resetAll() {
+  if(!confirm('⚠️ Sei sicuro? Questa operazione cancella TUTTI i dati.\n\nEsegui prima un backup!')) return
+  if(!confirm('Ultima conferma — cancellare tutto?')) return
+  ['leads','todos','receipts','quotes'].forEach(k => localStorage.removeItem('visibilia_'+k))
+  localStorage.removeItem('visibilia_last_backup')
+  renderDashboard()
+  renderSettings()
+  alert('Tutti i dati cancellati.')
+}
+
+function renderSettings() {
+  const leads = S.get('leads')
+  const todos = S.get('todos')
+  const receipts = S.get('receipts')
+  const quotes = S.get('quotes')
+  const lastBackup = localStorage.getItem('visibilia_last_backup')
+
+  const lbEl = document.getElementById('last-backup-info')
+  if(lbEl) {
+    if(lastBackup) {
+      const d = new Date(lastBackup)
+      const giorni = Math.floor((Date.now()-d.getTime())/(1000*60*60*24))
+      const color = giorni > 7 ? 'var(--orange)' : 'var(--green)'
+      lbEl.innerHTML = `<span style="color:${color}">Ultimo backup: ${d.toLocaleDateString('it-IT')} alle ${d.toLocaleTimeString('it-IT',{hour:'2-digit',minute:'2-digit'})} (${giorni===0?'oggi':giorni+' giorni fa'})</span>`
+    } else {
+      lbEl.innerHTML = `<span style="color:var(--red)">⚠️ Nessun backup ancora eseguito. Eseguilo subito!</span>`
+    }
+  }
+
+  const dsEl = document.getElementById('data-summary')
+  if(dsEl) {
+    dsEl.innerHTML = `
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+        <div style="background:var(--bg3);border-radius:8px;padding:10px;text-align:center">
+          <div style="font-size:22px;font-weight:500;color:var(--yellow)">${leads.length}</div>
+          <div class="text-sm">Lead</div>
+        </div>
+        <div style="background:var(--bg3);border-radius:8px;padding:10px;text-align:center">
+          <div style="font-size:22px;font-weight:500;color:var(--yellow)">${todos.length}</div>
+          <div class="text-sm">Todo</div>
+        </div>
+        <div style="background:var(--bg3);border-radius:8px;padding:10px;text-align:center">
+          <div style="font-size:22px;font-weight:500;color:var(--yellow)">${receipts.length}</div>
+          <div class="text-sm">Ricevute</div>
+        </div>
+        <div style="background:var(--bg3);border-radius:8px;padding:10px;text-align:center">
+          <div style="font-size:22px;font-weight:500;color:var(--yellow)">${quotes.length}</div>
+          <div class="text-sm">Preventivi</div>
+        </div>
+      </div>
+    `
+  }
+}
+
+// ============================================================
+// SEED DATA (primo avvio)
+// ============================================================
+function seedIfEmpty() {
+  if(S.get('todos').length===0){
+    const defaultTodos = [
+      { id:'s1', text:'Attivare Google Cloud API con carta di credito', due:today(), type:'once', cat:'admin', done:true, created:today() },
+      { id:'s2', text:'Lanciare scraper e raccogliere 30+ lead', due:today(), type:'once', cat:'outreach', done:true, created:today() },
+      { id:'s3', text:'Creare sito demo per D.C. Elettrica', due:today(), type:'once', cat:'sito', done:true, created:today() },
+      { id:'s4', text:'Mandare messaggio outreach a Francesco (D.C. Elettrica)', due:today(), type:'once', cat:'outreach', done:false, created:today() },
+      { id:'s5', text:'Raccogliere 30 nuovi lead con scraper', due:today(), type:'weekly', cat:'outreach', done:false, created:today() },
+      { id:'s6', text:'Mandare 20 messaggi outreach settimanali', due:today(), type:'weekly', cat:'outreach', done:false, created:today() },
+      { id:'s7', text:'Controllare siti clienti attivi (link, form, whatsapp)', due:today(), type:'monthly', cat:'cliente', done:false, created:today() },
+      { id:'s8', text:'Verificare pagamenti canoni mensili', due:today(), type:'monthly', cat:'admin', done:false, created:today() },
+    ]
+    S.set('todos', defaultTodos)
+  }
+  if(S.get('leads').length===0){
+    S.set('leads',[
+      { id:'demo1', nome:'D.C. Elettrica', categoria:'elettricista', citta:'Milano', telefono:'375 747 1012', indirizzo:'Via Ugo Tognazzi, Milano', rating:4.9, recensioni:213, stato:'Demo inviata', note:'Sito demo live su Netlify. In attesa di risposta.', data:today() },
+      { id:'demo2', nome:'Idraulico Amedeo', categoria:'idraulico', citta:'Milano', telefono:'324 665 0404', indirizzo:'Milano', rating:5, recensioni:39, stato:'Da contattare', note:'', data:today() },
+      { id:'demo3', nome:'Pittore Edile', categoria:'imbianchino', citta:'Roma', telefono:'334 273 8820', indirizzo:'Roma', rating:5, recensioni:26, stato:'Da contattare', note:'', data:today() },
+    ])
+  }
+}
+
+// ============================================================
+// INIT
+// ============================================================
+seedIfEmpty()
+renderDashboard()
+
+// Chiudi modal cliccando fuori
+document.querySelectorAll('.modal-bg').forEach(m=>{
+  m.addEventListener('click', e=>{ if(e.target===m) m.classList.remove('open') })
+})
+</script>
+</body>
+</html>
