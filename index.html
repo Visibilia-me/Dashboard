@@ -319,11 +319,11 @@ label{font-size:12px;color:var(--text2);display:block;margin-bottom:4px}
   </div>
 
   <div class="tabs2">
-    <button class="tab2 active" onclick="filterLeads('tutti')">Tutti</button>
-    <button class="tab2" onclick="filterLeads('Da contattare')">Da contattare</button>
-    <button class="tab2" onclick="filterLeads('Contattato')">Contattati</button>
-    <button class="tab2" onclick="filterLeads('Interessato')">Interessati</button>
-    <button class="tab2" onclick="filterLeads('Chiuso')">Chiusi</button>
+    <button class="tab2 active" onclick="filterLeads('tutti')" id="tab-tutti">Tutti</button>
+    <button class="tab2" onclick="filterLeads('Da contattare')" id="tab-dacontattare">Da contattare</button>
+    <button class="tab2" onclick="filterLeads('Contattato')" id="tab-contattato">Contattati</button>
+    <button class="tab2" onclick="filterLeads('Interessato')" id="tab-interessato">Interessati</button>
+    <button class="tab2" onclick="filterLeads('Chiuso')" id="tab-chiuso">Chiusi</button>
   </div>
 
   <div id="leads-list"><div class="loading"><span class="spinner"></span>Carico lead...</div></div>
@@ -433,7 +433,7 @@ label{font-size:12px;color:var(--text2);display:block;margin-bottom:4px}
       <select id="l-stato">
         <option>Da contattare</option>
         <option>Contattato</option>
-        <option>Demo inviata</option>
+        
         <option>Interessato</option>
         <option>Trattativa</option>
         <option>Chiuso</option>
@@ -708,7 +708,7 @@ function uid() { return Date.now().toString(36) + Math.random().toString(36).sli
 const STATI = {
   'Da contattare': 'badge-todo',
   'Contattato': 'badge-sent',
-  'Demo inviata': 'badge-sent',
+  
   'Interessato': 'badge-interested',
   'Trattativa': 'badge-interested',
   'Chiuso': 'badge-closed',
@@ -833,6 +833,20 @@ async function renderLeads() {
 
   let leads = [...allLeads]
 
+  // Aggiorna contatori tab
+  ;['tab-tutti','tab-dacontattare','tab-contattato','tab-interessato','tab-chiuso'].forEach(id => {
+    const counts = {
+      'tab-tutti': allLeads.length,
+      'tab-dacontattare': allLeads.filter(l=>l.stato==='Da contattare').length,
+      'tab-contattato': allLeads.filter(l=>l.stato==='Contattato').length,
+      'tab-interessato': allLeads.filter(l=>l.stato==='Interessato'||l.stato==='Trattativa').length,
+      'tab-chiuso': allLeads.filter(l=>l.stato==='Chiuso').length
+    }
+    const labels = {'tab-tutti':'Tutti','tab-dacontattare':'Da contattare','tab-contattato':'Contattati','tab-interessato':'Interessati','tab-chiuso':'Chiusi'}
+    const el2 = document.getElementById(id)
+    if(el2) el2.textContent = labels[id] + ' (' + counts[id] + ')'
+  })
+
   // Popola dropdown città
   const citySelect = document.getElementById('lead-city-filter')
   if (citySelect) {
@@ -871,7 +885,7 @@ async function renderLeads() {
       ${l.note ? `<div class="text-sm mt8" style="font-style:italic">"${l.note}"</div>` : ''}
       <div class="lead-actions">
         <select style="width:auto;font-size:11px;padding:4px 8px" onchange="updateLeadStato('${l.id}',this.value)">
-          ${['Da contattare', 'Contattato', 'Demo inviata', 'Interessato', 'Trattativa', 'Chiuso', 'Non interessato'].map(s => `<option ${s === l.stato ? 'selected' : ''}>${s}</option>`).join('')}
+          ${['Da contattare', 'Contattato', 'Interessato', 'Trattativa', 'Chiuso', 'Non interessato'].map(s => `<option ${s === l.stato ? 'selected' : ''}>${s}</option>`).join('')}
         </select>
         <button class="btn btn-ghost btn-sm" onclick="sendOutreachEmail('${l.id}')">✉️ Email</button>
         <button class="btn btn-ghost btn-sm" onclick="openLeadModal('${l.id}')">✏️</button>
@@ -1464,7 +1478,7 @@ async function renderDashboard() {
 
   const pipeStati = [
     { label: 'Da contattare', stati: ['Da contattare'], color: 'var(--yellow)' },
-    { label: 'Contattati', stati: ['Contattato', 'Demo inviata'], color: 'var(--orange)' },
+    { label: 'Contattati', stati: ['Contattato'], color: 'var(--orange)' },
     { label: 'Interessati', stati: ['Interessato', 'Trattativa'], color: 'var(--purple)' },
     { label: 'Chiusi', stati: ['Chiuso'], color: 'var(--green)' }
   ]
@@ -1525,7 +1539,7 @@ async function toggleTodoDash(id) {
 function sendOutreachEmail(id) {
   const l = allLeads.find(x => x.id === id)
   if (!l) return
-  const contattato = ['Contattato', 'Demo inviata', 'Interessato', 'Trattativa', 'Chiuso'].includes(l.stato)
+  const contattato = ['Contattato', 'Interessato', 'Trattativa', 'Chiuso'].includes(l.stato)
   let subject, body
   if (!contattato) {
     subject = `Ho creato qualcosa per te — ${l.nome}`
