@@ -296,7 +296,7 @@ label{font-size:12px;color:var(--text2);display:block;margin-bottom:4px}
   </div>
 
   <div style="display:flex;gap:8px;margin-bottom:10px;flex-wrap:wrap">
-    <input id="lead-search" type="text" placeholder="🔍 Cerca nome..."
+    <input id="lead-search" type="text" placeholder="🔍 Cerca nome, città, categoria..."
       oninput="renderLeads()"
       style="flex:1;min-width:140px;background:var(--bg3);border:1px solid var(--border2);border-radius:8px;padding:8px 12px;color:var(--text);font-family:'DM Sans',sans-serif;font-size:13px;outline:none">
     <select id="lead-cat-filter" onchange="renderLeads()"
@@ -848,7 +848,7 @@ async function renderLeads() {
   const cityFilter = document.getElementById('lead-city-filter')?.value
   if (cityFilter) leads = leads.filter(l => l.citta === cityFilter)
   const search = document.getElementById('lead-search')?.value?.toLowerCase()
-  if (search) leads = leads.filter(l => l.nome?.toLowerCase().includes(search))
+  if (search) leads = leads.filter(l => (l.nome||'').toLowerCase().includes(search)||(l.categoria||'').toLowerCase().includes(search)||(l.citta||'').toLowerCase().includes(search)||(l.telefono||'').toLowerCase().includes(search)||(l.note||'').toLowerCase().includes(search))
 
   leads.sort((a, b) => (parseInt(b.recensioni) || 0) - (parseInt(a.recensioni) || 0))
 
