@@ -438,6 +438,7 @@ label{font-size:12px;color:var(--text2);display:block;margin-bottom:4px}
         <option>Trattativa</option>
         <option>Chiuso</option>
         <option>Non interessato</option>
+        <option>Non raggiungibile</option>
       </select>
     </div>
     <div class="form-row"><label>Note</label><textarea id="l-note" placeholder="Appunti sulla trattativa..."></textarea></div>
@@ -712,7 +713,8 @@ const STATI = {
   'Interessato': 'badge-interested',
   'Trattativa': 'badge-interested',
   'Chiuso': 'badge-closed',
-  'Non interessato': 'badge-lost'
+  'Non interessato': 'badge-lost',
+  'Non raggiungibile': 'badge-lost'
 }
 
 const CAT_COLORS = { outreach: 'var(--yellow)', sito: 'var(--blue)', cliente: 'var(--green)', admin: 'var(--orange)', altro: 'var(--text2)' }
@@ -885,7 +887,7 @@ async function renderLeads() {
       ${l.note ? `<div class="text-sm mt8" style="font-style:italic">"${l.note}"</div>` : ''}
       <div class="lead-actions">
         <select style="width:auto;font-size:11px;padding:4px 8px" onchange="updateLeadStato('${l.id}',this.value)">
-          ${['Da contattare', 'Contattato', 'Interessato', 'Trattativa', 'Chiuso', 'Non interessato'].map(s => `<option ${s === l.stato ? 'selected' : ''}>${s}</option>`).join('')}
+          ${['Da contattare', 'Contattato', 'Interessato', 'Trattativa', 'Chiuso', 'Non interessato', 'Non raggiungibile'].map(s => `<option ${s === l.stato ? 'selected' : ''}>${s}</option>`).join('')}
         </select>
         <button class="btn btn-ghost btn-sm" onclick="sendOutreachEmail('${l.id}')">✉️ Email</button>
         <button class="btn btn-ghost btn-sm" onclick="openLeadModal('${l.id}')">✏️</button>
